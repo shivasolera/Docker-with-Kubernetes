@@ -1,0 +1,44 @@
+version: "3.8"
+services:
+  mongodb:
+    image: 'mongo'
+    # ports:
+    #   - "27017:27017"
+    volumes:
+      - data:/data/db
+    # container_name: mongodb  # This is required to give a name to the container other wise the name of the folder where the code is present will be assigend as the name of the container.
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: max
+      MONGO_INITDB_ROOT_PASSWORD: secret  
+    # env_file:
+    #   - ./env/mongo.env
+  backend:
+    build: ./backend
+    ports:
+      - "5000:80"
+    volumes:
+      - logs:/app/logs
+      - ./backend:/app   # This is a bind mount so no need to mention this in volumes section below.
+      - /app/node_modules  # This is a annonimous  volume mount so need to mention this in volumes section below.
+    # env_file:
+    #   - ./env/backend.env 
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: max
+      MONGO_INITDB_ROOT_PASSWORD: secret
+    depends_on:
+      - mongodb
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+    stdin_open: true   # This is required to keep the container running in interactive mode like -it in command.    
+    tty: true          # This is required to keep the container running in interactive mode like -it in command.
+    depends_on:       # This is required to make sure that the backend is up and running before the frontend starts.
+      - backend    
+
+
+volumes:
+  data:
+  logs:
